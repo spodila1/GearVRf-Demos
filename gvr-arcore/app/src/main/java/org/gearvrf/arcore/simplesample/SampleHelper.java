@@ -26,6 +26,8 @@ import org.gearvrf.GVRRenderData;
 import org.gearvrf.GVRSceneObject;
 import org.gearvrf.io.GVRCursorController;
 import org.gearvrf.io.GVRInputManager;
+import org.gearvrf.io.GVRTouchPadGestureListener;
+import org.joml.Vector4f;
 
 import java.util.EnumSet;
 
@@ -34,30 +36,60 @@ public class SampleHelper {
     private GVRSceneObject mCursor;
     private GVRCursorController mCursorController;
 
-    private int hsvHUE = 0;
+    private Vector4f[] mColors;
+    private int mPlaneIndex = 0;
 
-    public GVRSceneObject createQuadPlane(GVRContext gvrContext) {
+    SampleHelper()
+    {
+        mColors = new Vector4f[]
+        {
+            new Vector4f(1, 0, 0, 0.3f),
+            new Vector4f(0, 1, 0, 0.3f),
+            new Vector4f(0, 0, 1, 0.3f),
+            new Vector4f(1, 0, 1, 0.3f),
+            new Vector4f(0, 1, 1, 0.3f),
+            new Vector4f(1, 1, 0, 0.3f),
+            new Vector4f(1, 1, 1, 0.3f),
+
+            new Vector4f(1, 0, 0.5f, 0.3f),
+            new Vector4f(0, 0.5f, 0, 0.3f),
+            new Vector4f(0, 0, 0.5f, 0.3f),
+            new Vector4f(1, 0, 0.5f, 0.3f),
+            new Vector4f(0, 1, 0.5f, 0.3f),
+            new Vector4f( 1, 0.5f, 0,0.3f),
+            new Vector4f( 1, 0.5f, 1,0.3f),
+
+            new Vector4f(0.5f, 0, 1, 0.3f),
+            new Vector4f(0.5f, 0, 1, 0.3f),
+            new Vector4f(0, 0.5f, 1, 0.3f),
+            new Vector4f( 0.5f, 1, 0,0.3f),
+            new Vector4f( 0.5f, 1, 1,0.3f),
+            new Vector4f( 1, 1, 0.5f, 0.3f),
+            new Vector4f( 1, 0.5f, 0.5f, 0.3f),
+            new Vector4f( 0.5f, 0.5f, 1, 0.3f),
+            new Vector4f( 0.5f, 1, 0.5f, 0.3f),
+       };
+    }
+
+    public GVRSceneObject createQuadPlane(GVRContext gvrContext, float scale)
+    {
+        GVRSceneObject plane = new GVRSceneObject(gvrContext);
         GVRMesh mesh = GVRMesh.createQuad(gvrContext,
                 "float3 a_position", 1.0f, 1.0f);
-
         GVRMaterial mat = new GVRMaterial(gvrContext, GVRMaterial.GVRShaderType.Phong.ID);
-
         GVRSceneObject polygonObject = new GVRSceneObject(gvrContext, mesh, mat);
+        Vector4f color = mColors[mPlaneIndex % mColors.length];
 
-        hsvHUE += 35;
-        float[] hsv = new float[3];
-        hsv[0] = hsvHUE % 360;
-        hsv[1] = 1f; hsv[2] = 1f;
-
-        int c =  Color.HSVToColor(50, hsv);
-        mat.setDiffuseColor(Color.red(c) / 255f,Color.green(c) / 255f,
-                Color.blue(c) / 255f, 0.2f);
-
-        polygonObject.getRenderData().setMaterial(mat);
+        plane.setName("Plane" + mPlaneIndex);
+        polygonObject.setName("PlaneGeometry" + mPlaneIndex);
+        mPlaneIndex++;
+        mat.setDiffuseColor(color.x, color.y, color.x, color.w);
+        polygonObject.getRenderData().disableLight();
         polygonObject.getRenderData().setAlphaBlend(true);
         polygonObject.getTransform().setRotationByAxis(-90, 1, 0, 0);
-
-        return polygonObject;
+        polygonObject.getTransform().setScale(scale, scale, scale);
+        plane.addChildObject(polygonObject);
+        return plane;
     }
 
     public void initCursorController(GVRContext gvrContext, final SampleMain.TouchHandler handler) {
@@ -70,6 +102,7 @@ public class SampleHelper {
                 gvrContext.getAssetLoader().loadTexture(new GVRAndroidResource(gvrContext,
                         R.raw.cursor)));
         mCursor.getRenderData().setDepthTest(false);
+        mCursor.getRenderData().disableLight();
         mCursor.getRenderData().setRenderingOrder(GVRRenderData.GVRRenderingOrder.OVERLAY);
         final EnumSet<GVRPicker.EventOptions> eventOptions = EnumSet.of(
                 GVRPicker.EventOptions.SEND_TOUCH_EVENTS,
@@ -83,11 +116,11 @@ public class SampleHelper {
                     oldController.removePickEventListener(handler);
                 }
                 mCursorController = newController;
-                newController.addPickEventListener(handler);
                 newController.setCursor(mCursor);
                 newController.setCursorDepth(-cursorDepth);
-                newController.setCursorControl(GVRCursorController.CursorControl.CURSOR_CONSTANT_DEPTH);
+                newController.setCursorControl(GVRCursorController.CursorControl.PROJECT_CURSOR_ON_SURFACE);
                 newController.getPicker().setEventOptions(eventOptions);
+                newController.addPickEventListener(handler);
             }
         });
     }

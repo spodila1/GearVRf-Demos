@@ -141,7 +141,6 @@ public class AssetFactory
         int i = 0;
         for (GVRAvatar av : mAvatarList)
         {
-            Log.i("avatarName ","sdas "+av.getName()+" name "+name);
             if (av.getName().equals(name))
             {
                 String anims = mAvatarAnimations[2];

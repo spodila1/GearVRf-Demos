@@ -23,14 +23,10 @@ import android.util.Log;
 
 public class AvatarMain extends GVRMain
 {
-    private final String mModelPath = "YBot/ybot.fbx";
+    private final String mModelPath = "Cat/Cat.fbx";
     private final String[] mAnimationPaths =  {
-            "animation/captured/Video1_BVH.bvh",
-            "animation/captured/Video2_BVH.bvh",
-            "animation/captured/Video3_BVH.bvh",
-            "animation/captured/Video4_BVH.bvh",
-            "animation/captured/Video5_BVH.bvh",
-            "animation/captured/Video6_BVH.bvh"
+            "Cat/defaultAnim_Walk.bvh",
+
     };
     private final String mBoneMapPath = "animation/captured/bonemap.txt";
     private static final String TAG = "AVATAR";
@@ -60,7 +56,7 @@ public class AvatarMain extends GVRMain
                     }
                 });
             }
-            loadNextAnimation(avatar, mBoneMap);
+          //  loadNextAnimation(avatar, mBoneMap);
         }
 
         @Override

@@ -299,6 +299,7 @@ public class SampleMain extends GVRMain {
         {
             if ((mSelector.getSelected() != null) && (pickInfo.motionEvent != null))
             {
+
                 mHitX = pickInfo.motionEvent.getX();
                 mHitY = pickInfo.motionEvent.getY();
                 mSelector.onTouch();
@@ -326,8 +327,7 @@ public class SampleMain extends GVRMain {
 
             if (gvrHitResult == null)
             {
-                return;
-            }
+                return; }
             GVRAnchor anchor = findAnchorNear(pickInfo.hitLocation[0],
                                               pickInfo.hitLocation[1],
                                               pickInfo.hitLocation[2]);
@@ -389,12 +389,14 @@ public class SampleMain extends GVRMain {
             }
         }
 
+
         private GVRSceneObject addVirtualObject(float[] pose, GVRSceneObject andy)
         {
             GVRAnchor anchor;
             GVRSceneObject anchorObj = new GVRSceneObject(getGVRContext());
             anchorObj.addChildObject(andy);
             anchor = mixedReality.createAnchor(pose, anchorObj);
+
             mVirtualObjects.add(anchor);
             mainScene.addSceneObject(anchorObj);
             mVirtObjCount++;

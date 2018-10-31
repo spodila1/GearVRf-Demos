@@ -24,7 +24,6 @@ import android.util.Log;
 public class AvatarMain extends GVRMain
 {
     private final String mModelPath = "YBot/ybot.fbx";
-
     private final String[] mAnimationPaths =  {
             "animation/captured/Video1_BVH.bvh",
             "animation/captured/Video2_BVH.bvh",
@@ -41,7 +40,6 @@ public class AvatarMain extends GVRMain
     private int             mNumAnimsLoaded = 0;
     private String          mBoneMap;
 
-
     public AvatarMain(GVRActivity activity) {
         mActivity = activity;
     }
@@ -57,16 +55,12 @@ public class AvatarMain extends GVRMain
                 {
                     public void run()
                     {
-
                         avatar.centerModel(avatarRoot);
-
                         mScene.addSceneObject(avatarRoot);
                     }
                 });
             }
-
             loadNextAnimation(avatar, mBoneMap);
-
         }
 
         @Override
@@ -75,7 +69,6 @@ public class AvatarMain extends GVRMain
             animation.setRepeatMode(GVRRepeatMode.ONCE);
             animation.setSpeed(1f);
             ++mNumAnimsLoaded;
-
             if (!avatar.isRunning())
             {
                 avatar.startAll(GVRRepeatMode.REPEATED);
@@ -95,16 +88,16 @@ public class AvatarMain extends GVRMain
         public void onAnimationFinished(GVRAvatar avatar, GVRAnimator animator, GVRAnimation animation) { }
 
         public void onAnimationStarted(GVRAvatar avatar, GVRAnimator animator) { }
-
     };
 
+
     @Override
-    public void onInit(GVRContext gvrContext) {
+    public void onInit(GVRContext gvrContext)
+    {
         mContext = gvrContext;
         mScene = gvrContext.getMainScene();
         GVRCameraRig rig = mScene.getMainCameraRig();
         GVRDirectLight topLight = new GVRDirectLight(gvrContext);
-
         GVRSceneObject topLightObj = new GVRSceneObject(gvrContext);
 
         topLightObj.attachComponent(topLight);
@@ -117,25 +110,19 @@ public class AvatarMain extends GVRMain
         GVRAvatar avatar = new GVRAvatar(gvrContext, "YBot");
         avatar.getEventReceiver().addListener(mAvatarListener);
         mBoneMap = readFile(mBoneMapPath);
-
-        try {
+        try
+        {
             avatar.loadModel(new GVRAndroidResource(gvrContext, mModelPath));
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
             mActivity.finish();
             mActivity = null;
         }
         gvrContext.getInputManager().selectController();
-/*
-        try {
-          //  model = mContext.getAssetLoader().loadModel("environment/environment_test_2.fbx");
-        } catch (IOException ex) {
-        }*/
-       // centerModel(model, t);
-       // model.getTransform().setPositionZ(-1.25f);
-       // model.getTransform().setScale(5, 5, 5);
-       // mScene.addSceneObject(model);
     }
+
     private void loadNextAnimation(GVRAvatar avatar, String bonemap)
     {
         try
@@ -151,9 +138,9 @@ public class AvatarMain extends GVRMain
             Log.e(TAG, "Animation could not be loaded from " + mAnimationPaths[mNumAnimsLoaded]);
         }
     }
+
     @Override
     public void onStep() {
-
     }
 
     private String readFile(String filePath)
@@ -172,7 +159,6 @@ public class AvatarMain extends GVRMain
             return null;
         }
     }
-
 
 
 

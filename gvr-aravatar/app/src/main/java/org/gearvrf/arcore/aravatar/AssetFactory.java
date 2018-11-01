@@ -15,13 +15,11 @@
 
 package org.gearvrf.arcore.aravatar;
 
-import android.graphics.Color;
 import android.util.Log;
 
 import org.gearvrf.GVRAndroidResource;
 import org.gearvrf.GVRContext;
 import org.gearvrf.GVRDirectLight;
-import org.gearvrf.GVRLight;
 import org.gearvrf.GVRMaterial;
 import org.gearvrf.GVRMesh;
 import org.gearvrf.GVRPicker;
@@ -45,13 +43,6 @@ import java.util.List;
 
 public class AssetFactory
 {
-    private final String[] mAvatarNames = { "YBot", "Cat", "Eva" };
-    private final String[] mAvatarAnimations =
-            {
-                    "YBot/Ybot_SambaDancing.bvh;Zombie_Stand_Up.bvh",
-                    "Cat/cat_animation1.bvh;Cat/cat_animation2.bvh",
-                    "Eva/eva_animation1.bvh;Eva/eva_animation2.bvh"
-            };
     private static final String TAG = "AVATAR";
     private final String[] YBOT = new String[] { "YBot/YBot.fbx", "YBot/bonemap.txt", "YBot/Football_Hike.bvh", "YBot/Zombie_Stand_Up.bvh" };
 
@@ -185,6 +176,7 @@ public class AssetFactory
     {
         return mAvatars.get(mAvatarIndex);
     }
+
     public String getMapFile()
     {
         String[] files = mAvatarFiles.get(mAvatarIndex);
@@ -194,6 +186,37 @@ public class AssetFactory
         }
         return files[1];
     }
+    public boolean loadNextAnimation()
+    {
+        String animFile = getAnimFile(mNumAnimsLoaded);
+        if ((animFile == null) || (mBoneMap == null))
+        {
+            return false;
+        }
+        try
+        {
+            GVRAndroidResource res = new GVRAndroidResource(mContext, animFile);
+            ++mNumAnimsLoaded;
+            getAvatar().loadAnimation(res, mBoneMap);
+            return true;
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+            Log.e(TAG, "Animation could not be loaded from " + animFile);
+            return false;
+        }
+    }
+    public String getAnimFile(int animIndex)
+    {
+        String[] files = mAvatarFiles.get(mAvatarIndex);
+        if (animIndex + 2 > files.length)
+        {
+            return null;
+        }
+        return files[2 + animIndex];
+    }
+
     public GVRSceneObject createPlane(GVRContext gvrContext, float scale)
     {
         GVRSceneObject plane = new GVRSceneObject(gvrContext);
@@ -227,125 +250,6 @@ public class AssetFactory
         lightOwner.attachComponent(light);
         return light;
     }
-
-    private GVRAvatar findAvatar(String name)
-    {
-        for (GVRAvatar av: mAvatarList)
-        {
-            if (av.getName().equals(name))
-            {
-                return av;
-            }
-        }
-        return null;
-    }
-
-    private String[] findAnimations(String name)
-    {
-        int i = 0;
-        for (GVRAvatar av : mAvatarList)
-        {
-            if (av.getName().equals(name))
-            {
-                String anims = mAvatarAnimations[2];
-                return anims.split(";");
-            }
-            ++i;
-        }
-        return null;
-    }
-    public boolean loadNextAnimation()
-    {
-        String animFile = getAnimFile(mNumAnimsLoaded);
-        if ((animFile == null) || (mBoneMap == null))
-        {
-            return false;
-        }
-        try
-        {
-            GVRAndroidResource res = new GVRAndroidResource(mContext, animFile);
-            ++mNumAnimsLoaded;
-            getAvatar().loadAnimation(res, mBoneMap);
-            return true;
-        }
-        catch (IOException ex)
-        {
-            ex.printStackTrace();
-            Log.e(TAG, "Animation could not be loaded from " + animFile);
-            return false;
-        }
-    }
-    public String getAnimFile(int animIndex)
-    {
-        String[] files = mAvatarFiles.get(mAvatarIndex);
-        if (animIndex + 2 > files.length)
-        {
-            return null;
-        }
-        return files[2 + animIndex];
-    }
-
-
-    public GVRAvatar loadAvatar(GVRContext ctx, String avatarName)
-    {
-        GVRAvatar avatar = findAvatar(avatarName);
-        String avatarPath = avatarName + "/" + avatarName + ".dae";
-        if (avatar != null)
-        {
-            return avatar;
-        }
-        avatar = new GVRAvatar(ctx, avatarName);
-        avatar.getEventReceiver().addListener(mAvatarListener);
-        try
-        {
-            avatar.loadModel(new GVRAndroidResource(ctx, avatarPath));
-            return avatar;
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            Log.e("ARAVATAR", "Avatar could not be loaded from " + avatarPath);
-            return null;
-        }
-    }
-/*
-    public boolean loadAnimations(GVRAvatar avatar)
-    {
-        String avatarName = avatar.getName();
-        String[] animpaths = findAnimations(avatarName);
-        GVRContext ctx = avatar.getGVRContext();
-        String boneMap = null;
-
-        if (animpaths == null)
-        {
-            return false;
-        }
-        try
-        {
-            boneMap = readFile(ctx, avatarName + "/bonemap.txt");
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            Log.e("ARAVATAR", "Avatar bone mape could not be loaded from " + avatarName + "/bonemap.txt");
-            return false;
-        }
-        for (String path : animpaths)
-        {
-            try
-            {
-                GVRAndroidResource res = new GVRAndroidResource(ctx, path);
-                avatar.loadAnimation(res, boneMap);
-            }
-            catch (IOException ex)
-            {
-                ex.printStackTrace();
-                Log.e("ARAVATAR", "Animation could not be loaded from " + path);
-                return false;
-            }
-        }
-        return true;
-    }*/
 
     private String readFile(GVRContext ctx, String filePath)
     {

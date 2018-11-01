@@ -27,8 +27,6 @@ import org.gearvrf.GVRPicker;
 import org.gearvrf.GVRPointLight;
 import org.gearvrf.GVRScene;
 import org.gearvrf.GVRSceneObject;
-import org.gearvrf.animation.GVRAnimation;
-import org.gearvrf.animation.GVRAnimator;
 import org.gearvrf.animation.GVRAvatar;
 import org.gearvrf.animation.GVRRepeatMode;
 import org.gearvrf.mixedreality.GVRAnchor;
@@ -49,7 +47,6 @@ public class AvatarMain extends GVRMain {
     private TouchHandler      mTouchHandler;
     private SelectionHandler  mSelector;
     private GVRDirectLight    mSceneLight;
-    private String            mAvatarName = "Eva";
 
     @Override
     public void onInit(GVRContext gvrContext)
@@ -63,7 +60,6 @@ public class AvatarMain extends GVRMain {
         mScene.addSceneObject(mSceneLight.getOwnerObject());
         mAvatar = mAssets.selectAvatar("YBOT");
         mAssets.loadModel();
-       // mAvatar = mAssets.loadAvatar(mContext, mAvatarName);
         if (mAvatar == null)
         {
             Log.e(TAG, "Avatar could not be loaded");
@@ -83,7 +79,6 @@ public class AvatarMain extends GVRMain {
         mSceneLight.setDiffuseIntensity(light, light, light, 1);
         mSceneLight.setSpecularIntensity(light, light, light, 1);
     }
-
 
     private IPlaneEventsListener planeEventsListener = new IPlaneEventsListener()
     {

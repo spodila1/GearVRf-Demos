@@ -47,49 +47,153 @@ public class AssetFactory
 {
     private final String[] mAvatarNames = { "YBot", "Cat", "Eva" };
     private final String[] mAvatarAnimations =
-    {
-        "YBot/Ybot_SambaDancing.bvh;Zombie_Stand_Up.bvh",
-        "Cat/cat_animation1.bvh;Cat/cat_animation2.bvh",
-        "Eva/eva_animation1.bvh;Eva/eva_animation2.bvh"
-    };
+            {
+                    "YBot/Ybot_SambaDancing.bvh;Zombie_Stand_Up.bvh",
+                    "Cat/cat_animation1.bvh;Cat/cat_animation2.bvh",
+                    "Eva/eva_animation1.bvh;Eva/eva_animation2.bvh"
+            };
+    private static final String TAG = "AVATAR";
+    private final String[] YBOT = new String[] { "YBot/YBot.fbx", "YBot/bonemap.txt", "YBot/Football_Hike.bvh", "YBot/Zombie_Stand_Up.bvh" };
+
+    private final String[] EVA = { "Eva/Eva.dae", "Eva/bonemap.txt", "Eva/bvhExport_RUN.bvh", "Eva/eva_animation2.bvh" };
+
+    private final String[] CAT = { "Cat/Cat.fbx", "Cat/bonemap.txt", "Cat/defaultAnim_SitDown.bvh", "Cat/defaultAnim_StandUp.bvh", "Cat/defaultAnim_Walk.bvh" };
+
+    private final String[] HLMODEL = new String[] { "/sdcard/hololab.ply" };
+
+    private final List<String[]> mAvatarFiles = new ArrayList<String[]>();
+    private final List<GVRAvatar> mAvatars = new ArrayList<GVRAvatar>();
     private GVRSceneObject mCursor;
     private Vector4f[] mColors;
     private int mPlaneIndex = 0;
+    private int mAvatarIndex = -1;
     private List<GVRAvatar> mAvatarList;
+    private GVRContext mContext;
+    private int mNumAnimsLoaded = 0;
+    private String mBoneMap = null;
 
-    AssetFactory()
+    AssetFactory(GVRContext ctx)
     {
+        mContext = ctx;
+        mAvatarFiles.add(0, EVA);
+        mAvatarFiles.add(1, YBOT);
+        mAvatarFiles.add(2, CAT);
+        mAvatars.add(0, new GVRAvatar(ctx, "EVA"));
+        mAvatars.add(1, new GVRAvatar(ctx, "YBOT"));
+        mAvatars.add(2, new GVRAvatar(ctx, "CAT"));
+        selectAvatar("EVA");
         mAvatarList = new ArrayList<>();
         mColors = new Vector4f[]
+                {
+                        new Vector4f(1, 0, 0, 0.2f),
+                        new Vector4f(0, 1, 0, 0.2f),
+                        new Vector4f(0, 0, 1, 0.2f),
+                        new Vector4f(1, 0, 1, 0.2f),
+                        new Vector4f(0, 1, 1, 0.2f),
+                        new Vector4f(1, 1, 0, 0.2f),
+                        new Vector4f(1, 1, 1, 0.2f),
+
+                        new Vector4f(1, 0, 0.5f, 0.2f),
+                        new Vector4f(0, 0.5f, 0, 0.2f),
+                        new Vector4f(0, 0, 0.5f, 0.2f),
+                        new Vector4f(1, 0, 0.5f, 0.2f),
+                        new Vector4f(0, 1, 0.5f, 0.2f),
+                        new Vector4f( 1, 0.5f, 0,0.2f),
+                        new Vector4f( 1, 0.5f, 1,0.2f),
+
+                        new Vector4f(0.5f, 0, 1, 0.2f),
+                        new Vector4f(0.5f, 0, 1, 0.2f),
+                        new Vector4f(0, 0.5f, 1, 0.2f),
+                        new Vector4f( 0.5f, 1, 0,0.2f),
+                        new Vector4f( 0.5f, 1, 1,0.2f),
+                        new Vector4f( 1, 1, 0.5f, 0.2f),
+                        new Vector4f( 1, 0.5f, 0.5f, 0.2f),
+                        new Vector4f( 0.5f, 0.5f, 1, 0.2f),
+                        new Vector4f( 0.5f, 1, 0.5f, 0.2f),
+                };
+    }
+    public GVRAvatar selectAvatar(String name)
+    {
+        for (int i = 0; i < mAvatars.size(); ++i)
         {
-            new Vector4f(1, 0, 0, 0.2f),
-            new Vector4f(0, 1, 0, 0.2f),
-            new Vector4f(0, 0, 1, 0.2f),
-            new Vector4f(1, 0, 1, 0.2f),
-            new Vector4f(0, 1, 1, 0.2f),
-            new Vector4f(1, 1, 0, 0.2f),
-            new Vector4f(1, 1, 1, 0.2f),
+            GVRAvatar avatar = mAvatars.get(i);
+            if (name.equals(avatar.getName()))
+            {
+                if (mAvatarIndex == i)
+                {
+                    return avatar;
+                }
+                unselectAvatar();
+                mAvatarIndex = i;
+                mNumAnimsLoaded = avatar.getAnimationCount();
+                if ((avatar.getSkeleton() == null) &&
+                        (mAvatarListener != null))
+                {
+                    avatar.getEventReceiver().addListener(mAvatarListener);
+                }
 
-            new Vector4f(1, 0, 0.5f, 0.2f),
-            new Vector4f(0, 0.5f, 0, 0.2f),
-            new Vector4f(0, 0, 0.5f, 0.2f),
-            new Vector4f(1, 0, 0.5f, 0.2f),
-            new Vector4f(0, 1, 0.5f, 0.2f),
-            new Vector4f( 1, 0.5f, 0,0.2f),
-            new Vector4f( 1, 0.5f, 1,0.2f),
+                if (mNumAnimsLoaded == 0)
+                {
+                    String mapFile = getMapFile();
+                    if (mapFile != null)
+                    {
+                        mBoneMap = readFile(mContext,mapFile);
+                    }
+                    else
+                    {
+                        mBoneMap = null;
+                    }
+                }
+                return avatar;
+            }
+        }
+        return null;
+    }
+    private void unselectAvatar()
+    {
+        if (mAvatarIndex >= 0)
+        {
+            GVRAvatar avatar = getAvatar();
+            avatar.stop();
+            mNumAnimsLoaded = 0;
+            mBoneMap = null;
+        }
+    }
+    public boolean loadModel()
+    {
+        GVRAndroidResource res = null;
+        GVRAvatar avatar = getAvatar();
 
-            new Vector4f(0.5f, 0, 1, 0.2f),
-            new Vector4f(0.5f, 0, 1, 0.2f),
-            new Vector4f(0, 0.5f, 1, 0.2f),
-            new Vector4f( 0.5f, 1, 0,0.2f),
-            new Vector4f( 0.5f, 1, 1,0.2f),
-            new Vector4f( 1, 1, 0.5f, 0.2f),
-            new Vector4f( 1, 0.5f, 0.5f, 0.2f),
-            new Vector4f( 0.5f, 0.5f, 1, 0.2f),
-            new Vector4f( 0.5f, 1, 0.5f, 0.2f),
-       };
+        try
+        {
+            res = new GVRAndroidResource(mContext, getModelFile());
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+            return false;
+        }
+        avatar.loadModel(res);
+        return true;
+    }
+    public String getModelFile()
+    {
+        return mAvatarFiles.get(mAvatarIndex)[0];
     }
 
+    public GVRAvatar getAvatar()
+    {
+        return mAvatars.get(mAvatarIndex);
+    }
+    public String getMapFile()
+    {
+        String[] files = mAvatarFiles.get(mAvatarIndex);
+        if (files.length < 2)
+        {
+            return null;
+        }
+        return files[1];
+    }
     public GVRSceneObject createPlane(GVRContext gvrContext, float scale)
     {
         GVRSceneObject plane = new GVRSceneObject(gvrContext);
@@ -150,6 +254,37 @@ public class AssetFactory
         }
         return null;
     }
+    public boolean loadNextAnimation()
+    {
+        String animFile = getAnimFile(mNumAnimsLoaded);
+        if ((animFile == null) || (mBoneMap == null))
+        {
+            return false;
+        }
+        try
+        {
+            GVRAndroidResource res = new GVRAndroidResource(mContext, animFile);
+            ++mNumAnimsLoaded;
+            getAvatar().loadAnimation(res, mBoneMap);
+            return true;
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+            Log.e(TAG, "Animation could not be loaded from " + animFile);
+            return false;
+        }
+    }
+    public String getAnimFile(int animIndex)
+    {
+        String[] files = mAvatarFiles.get(mAvatarIndex);
+        if (animIndex + 2 > files.length)
+        {
+            return null;
+        }
+        return files[2 + animIndex];
+    }
+
 
     public GVRAvatar loadAvatar(GVRContext ctx, String avatarName)
     {
@@ -173,7 +308,7 @@ public class AssetFactory
             return null;
         }
     }
-
+/*
     public boolean loadAnimations(GVRAvatar avatar)
     {
         String avatarName = avatar.getName();
@@ -210,16 +345,23 @@ public class AssetFactory
             }
         }
         return true;
-    }
+    }*/
 
-    private String readFile(GVRContext ctx, String filePath) throws IOException
+    private String readFile(GVRContext ctx, String filePath)
     {
-        GVRAndroidResource res = new GVRAndroidResource(ctx, filePath);
-        InputStream stream = res.getStream();
-        byte[] bytes = new byte[stream.available()];
-        stream.read(bytes);
-        String s = new String(bytes);
-        return s;
+        try
+        {
+            GVRAndroidResource res = new GVRAndroidResource(ctx, filePath);
+            InputStream stream = res.getStream();
+            byte[] bytes = new byte[stream.available()];
+            stream.read(bytes);
+            String s = new String(bytes);
+            return s;
+        }
+        catch (IOException ex)
+        {
+            return null;
+        }
     }
 
     public void initCursorController(GVRContext gvrContext, final ITouchEvents handler)
@@ -264,7 +406,7 @@ public class AssetFactory
             float scale = 0.3f / bv.radius;
             avatarRoot.getTransform().setScale(scale, scale, scale);
             mAvatarList.add(avatar);
-            loadAnimations(avatar);
+            loadNextAnimation();
         }
 
         @Override
@@ -275,6 +417,7 @@ public class AssetFactory
                 animation.setRepeatMode(GVRRepeatMode.ONCE);
                 animation.setSpeed(1f);
             }
+            loadNextAnimation();
         }
 
         public void onModelLoaded(GVRAvatar avatar, GVRSceneObject avatarRoot, String filePath, String errors) { }

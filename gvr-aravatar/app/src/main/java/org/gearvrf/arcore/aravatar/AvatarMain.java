@@ -56,12 +56,14 @@ public class AvatarMain extends GVRMain {
     {
         mContext = gvrContext;
         mScene = mContext.getMainScene();
-        mAssets = new AssetFactory();
+        mAssets = new AssetFactory(mContext);
         mTouchHandler = new TouchHandler();
         mSelector = new SelectionHandler(gvrContext);
         mSceneLight = mAssets.makeSceneLight(gvrContext);
         mScene.addSceneObject(mSceneLight.getOwnerObject());
-        mAvatar = mAssets.loadAvatar(mContext, mAvatarName);
+        mAvatar = mAssets.selectAvatar("YBOT");
+        mAssets.loadModel();
+       // mAvatar = mAssets.loadAvatar(mContext, mAvatarName);
         if (mAvatar == null)
         {
             Log.e(TAG, "Avatar could not be loaded");
